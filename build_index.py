@@ -64,7 +64,11 @@ def score_data(uniq, array):
                 udict[u][a]+=(all_dict[a].index(u)+1)
             except:
                 pass
-    
+    for u in uniq:       
+        for a in all_dict.keys():    
+                if udict[u][a]==0:
+                    udict[u].pop(a)
+                    
     conn=sqlite3.connect('test.db')
     count=0
     for u in udict.keys():
