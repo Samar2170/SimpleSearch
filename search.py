@@ -2,7 +2,7 @@ import enchant
 import sqlite3
 import pandas as pd
 
-def spell_check(word):
+def spell_lda(word):
     conn=sqlite3.connect('test.db')
     df=pd.read_sql("SELECT * FROM unique_words",conn)
     conn.close()
@@ -16,7 +16,7 @@ def spell_check(word):
 
 def search(query):
     conn=sqlite3.connect('test.db')
-    score=spell_check(query)
+    score=spell_lda(query)
 
     r1,r2=[],[]
     w1=score[0][0]
@@ -27,5 +27,4 @@ def search(query):
     df.sort_values(by=['value'],inplace=True)
     df2.sort_values(by=['value'], inplace=True)
     df=pd.concat([df,df2])
-    df=df[:20]
     return df

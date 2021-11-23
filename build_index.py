@@ -8,14 +8,15 @@ def lemmatize(arg):
     string = re.sub(r'[^\w\s]','',arg)
     return string   
         
-def build_ds(array):
+def build_ds(array, sel):
     all_words=[]
     for prod in array:
-        all_strs=[p for p in prod.split(' ') if p not in remove]
-        for a in all_strs:
-            a=lemmatize(a)
-            a=a.replace('\n','')
-            all_words.append(a.lower())
+        if isinstance(prod,str):
+            all_strs=[p for p in prod.split(' ') if p not in remove]
+            for a in all_strs:
+                a=lemmatize(a)
+                a=a.replace('\n','')
+                all_words.append(a.lower())
     uniq_words=list(set(all_words))       
     
     
@@ -37,23 +38,30 @@ def build_ds(array):
         uniq_words.pop(d)
     
     conn=sqlite3.connect('test.db')
+    c=conn.cursor()
+    c.execute("SELECT COUNT(*) FROM unique_words")
+    last_entry=c.fetchone()
+    count=last_entry[0]+ 1
+
     for i,u in enumerate(uniq_words):
-        conn.execute("INSERT INTO unique_words (id,word) VALUES (?,?)",(i,u))
+        i=count+i
+        conn.execute("INSERT INTO unique_words (id,word, selection) VALUES (?,?,?)",(i,u,sel))
     conn.commit()
     conn.close()        
     return uniq_words       
 
-def score_data(uniq, array):
+def score_data(uniq, array,sel):
     all_dict={}
     for prod in array:
-        words=[p for p in prod.split(' ') if p not in remove]
-        words2=[]
-        for w in words:
-            w=lemmatize(w)
-            w=w.replace('\n','')
-            w=w.lower()
-            words2.append(w)
-        all_dict[prod]=words2 
+        if isinstance(prod,str):
+            words=[p for p in prod.split(' ') if p not in remove]
+            words2=[]
+            for w in words:
+                w=lemmatize(w)
+                w=w.replace('\n','')
+                w=w.lower()
+                words2.append(w)
+            all_dict[prod]=words2 
     udict={}    
     for u in uniq:
         udict[u]={}
@@ -70,10 +78,14 @@ def score_data(uniq, array):
                     udict[u].pop(a)
                     
     conn=sqlite3.connect('test.db')
-    count=0
+    c=conn.cursor()
+    c.execute("SELECT COUNT(*) FROM index_table")
+    last_entry=c.fetchone()
+    count=last_entry[0]+ 1
     for u in udict.keys():
         for a in udict[u].keys():
-            conn.execute("INSERT INTO index_table (id,string,uniq_word,value) VALUES (?,?,?,?)",(count,a,u,udict[u][a]))
+            conn.execute("INSERT INTO index_table (id,string,uniq_word,value, indx_selection) VALUES (?,?,?,?,?)",(count,a,u,udict[u][a],sel))
             count+=1
     conn.commit()    
     return udict    
+

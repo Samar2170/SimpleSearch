@@ -1,0 +1,2 @@
+1. when two uniq words are combined . -- use mw search 
+2. when query string is a substring of a word., lda matches to wrong word. 
